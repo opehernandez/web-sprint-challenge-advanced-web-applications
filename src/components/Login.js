@@ -1,12 +1,65 @@
-import React from 'react';
+import axios from 'axios';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useHistory } from 'react-router';
+
 
 const Login = () => {
+    const history = useHistory()
+    const [error, setError] = useState('')
+    const [login, setLogin] = useState({
+       credentials: {
+           username: '',
+           password: ''
+       }
+    })
     
+    const formSubmit = (e) => {
+        e.preventDefault()
+
+        const loginCall = () => {
+            axios.post('http://localhost:5000/api/login', login.credentials)
+                .then(resp=> {
+                    localStorage.setItem('token', resp.data.token);
+                    localStorage.setItem('role', resp.data.role);
+                    localStorage.setItem('username', resp.data.username);
+                    history.push('/view');
+                })
+                .catch(err=> {
+                    setError('Incorrect username or password');
+                    document.getElementById("submit").reset();
+                })
+        }
+
+        const {username, password} = login.credentials
+        username === '' ? setError('You need to enter a username') : password === '' ? setError('You need to enter a password') : loginCall()
+        
+        
+    }
+
+    const handleChange = (e) => {
+        setLogin({
+            credentials: {
+                ...login.credentials,
+                [e.target.name] : e.target.value
+            }
+        })
+    }
     return(<ComponentContainer>
         <ModalContainer>
-            <h1>Welcome to Blogger Pro</h1>
-            <h2>Please enter your account information.</h2>
+            <FormGroup id='submit' onSubmit={formSubmit}>
+                <h1>Welcome to Blogger Pro</h1>
+                <h2>Please enter your account information.</h2>
+                <Label>Username</Label>
+                <Input name='username' id='username' onChange={handleChange}></Input>
+                <Label >Password</Label>
+                <Input type='password' name='password' id='password' onChange={handleChange}></Input>
+                <Button>SUBMIT</Button>
+            </FormGroup>
+            {error && <PWarning id='error'>{error}</PWarning>}
+            
+            
+            
         </ModalContainer>
     </ComponentContainer>);
 }
@@ -55,3 +108,12 @@ const Button = styled.button`
     padding:1rem;
     width: 100%;
 `
+const PWarning = styled.p`
+    background: red;
+    color: white;
+`
+
+export function preventDefault() {
+    throw new Error('Function not implemented.');
+}
+
